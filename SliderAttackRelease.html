@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+    <head></head>
+    <body>
+        <button id="playButton">Play note</button>
+        <input id="attack"></input>
+        <input id="release"></input>
+
+        <script>
+            var playButton = document.getElementById("playButton");
+            var attackInput = document.getElementById("attack");
+            var releaseInput = document.getElementById("release");
+            playButton.onclick = function () {
+                playNote(440, Number(attackInput.value), Number(releaseInput.value))
+            }
+
+            const c = new AudioContext;
+            function playNote(note, attack, release) {
+                var o = c.createOscillator();
+                var g = c.createGain();
+
+                o.frequency.value = note;
+                o.connect(g);
+                g.connect(c.destination);
+
+                g.gain.setValueAtTime(0, c.currentTime);
+                g.gain.linearRampToValueAtTime(1, c.currentTime + attack);
+                g.gain.linearRampToValueAtTime(0, c.currentTime + attack + release);
+
+                o.start();
+                o.stop(c.currentTime + attack + release);
+            }
+        </script>
+    </body>
+</html>
