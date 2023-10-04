@@ -4,8 +4,8 @@
         <button id="playButton">Play note</button>
         <button id="playSequence">Play sequence</button>
         <button id="stopSequence">Stop sequence</button>
-        <input id="attack"></input>
-        <input id="release"></input>
+        <input type="range" min="1" max="1000" value="500" id="attack"></input>
+        <input type="range" min="1" max="1000" value="500" id="release"></input>
 
         <script>
             var playButton = document.getElementById("playButton");
@@ -16,7 +16,7 @@
             const c = new AudioContext;
 
             var notes = [-24, -24, -24, -24, -24, -24, -24, -24, -12, -24, -24, -24, -24, -19, -14, -12];
-            
+
             var period = 100;
             var attack = 0.01;
             var release = 0.1;
@@ -28,7 +28,7 @@
             function playSequence(notes, i) {
                 if (i >= notes.length) i = 0;
                 if (playing){
-                    playNote(noteFrequency(notes[i]), attack, release);
+                    playNote(noteFrequency(notes[i]), Number(attackInput.value)/1000, Number(releaseInput.value)/1000);
                     setTimeout(() => playSequence(notes, i + 1), period);
                 }
                 else return
