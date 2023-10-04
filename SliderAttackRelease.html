@@ -4,8 +4,14 @@
         <button id="playButton">Play note</button>
         <button id="playSequence">Play sequence</button>
         <button id="stopSequence">Stop sequence</button>
-        <input type="range" min="1" max="1000" value="500" id="attack"></input>
-        <input type="range" min="1" max="1000" value="500" id="release"></input>
+        <div>
+            Attack
+            <input type="range" min="1" max="1000" value="10" id="attack"></input>
+        </div>
+        <div>
+            Release
+            <input type="range" min="1" max="1000" value="100" id="release"></input>
+        </div>
 
         <script>
             var playButton = document.getElementById("playButton");
@@ -15,12 +21,14 @@
             var releaseInput = document.getElementById("release");
             const c = new AudioContext;
 
-            var notes = [-24, -24, -24, -24, -24, -24, -24, -24, -12, -24, -24, -24, -24, -19, -14, -12];
-
-            var period = 100;
+            var notes = [0, 2, 4, -1000, 12, -1000, 11, -1000, 7, -1000, 4, 7, 4, -1000, -1000, -1000, 0, 2, 4, -1000, -3, 0, 2, -1000, 4, -1000, 2, 4, 2, 0, -1, -1000];
+            var harmony = [-1000, -1000, -1000, -1000, 16, -1000, 14, -1000, 11, -1000, 11, 12, 11, -1000, -1000, -1000, 4, 5, 7, -1000, 0, 2, 4, -1000, 7, -1000, 5, 7, 5, 4, 2, -1000];
+            
+            var period = 200;
             var attack = 0.01;
             var release = 0.1;
             var playing = false;
+            
             function noteFrequency(note){
                 return 440 * Math.pow(2, note/12);
             }
@@ -34,14 +42,13 @@
                 else return
             }
 
-            //playSequence(notes, 0);
-
             playButton.onclick = function () {
-                playNote(440, Number(attackInput.value), Number(releaseInput.value));
+                playNote(440, Number(attackInput.value)/1000, Number(releaseInput.value)/1000);
             }
             playSeq.onclick = function () {
                 playing = true;
                 playSequence(notes, 0);
+                setTimeout( () => playSequence(harmony,0), period*(notes.length + 1));
             }
             stopSeq.onclick = function () {
                 playing = false;
@@ -58,7 +65,7 @@
                 g.connect(c.destination);
 
                 g.gain.setValueAtTime(0, c.currentTime);
-                g.gain.linearRampToValueAtTime(1, c.currentTime + attack);
+                g.gain.linearRampToValueAtTime(0.5, c.currentTime + attack);
                 g.gain.linearRampToValueAtTime(0, c.currentTime + attack + release);
 
                 o.start();
