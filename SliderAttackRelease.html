@@ -2,23 +2,58 @@
     <head></head>
     <body>
         <button id="playButton">Play note</button>
+        <button id="playSequence">Play sequence</button>
+        <button id="stopSequence">Stop sequence</button>
         <input id="attack"></input>
         <input id="release"></input>
 
         <script>
             var playButton = document.getElementById("playButton");
+            var playSeq = document.getElementById("playSequence");
+            var stopSeq = document.getElementById("stopSequence");
             var attackInput = document.getElementById("attack");
             var releaseInput = document.getElementById("release");
-            playButton.onclick = function () {
-                playNote(440, Number(attackInput.value), Number(releaseInput.value))
+            const c = new AudioContext;
+
+            var notes = [-24, -24, -24, -24, -24, -24, -24, -24, -12, -24, -24, -24, -24, -19, -14, -12];
+            
+            var period = 100;
+            var attack = 0.01;
+            var release = 0.1;
+            var playing = false;
+            function noteFrequency(note){
+                return 440 * Math.pow(2, note/12);
             }
 
-            const c = new AudioContext;
+            function playSequence(notes, i) {
+                if (i >= notes.length) i = 0;
+                if (playing){
+                    playNote(noteFrequency(notes[i]), attack, release);
+                    setTimeout(() => playSequence(notes, i + 1), period);
+                }
+                else return
+            }
+
+            //playSequence(notes, 0);
+
+            playButton.onclick = function () {
+                playNote(440, Number(attackInput.value), Number(releaseInput.value));
+            }
+            playSeq.onclick = function () {
+                playing = true;
+                playSequence(notes, 0);
+            }
+            stopSeq.onclick = function () {
+                playing = false;
+            }
+
+            
             function playNote(note, attack, release) {
                 var o = c.createOscillator();
                 var g = c.createGain();
 
                 o.frequency.value = note;
+                o.type = "square";
                 o.connect(g);
                 g.connect(c.destination);
 
