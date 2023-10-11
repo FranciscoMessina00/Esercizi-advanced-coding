@@ -1,0 +1,154 @@
+<!--
+We will program a set of functions that:
+    - launch a sequence of notes
+    - each sequence has note and options 
+    - we want to change notes and options at runtime
+-->
+
+<html>
+    <head></head>
+
+    <body>
+        <h1>My three note sequencer!!</h1>
+        <button onclick="c.suspend()">Suspend context</button>
+        <button onclick="c.resume()">Resume context</button>
+        <div>
+            nota 1
+            <input type="range" min="300" max="2000" value="440" id="note1"></input>
+        </div>
+        <div>
+            nota 2
+            <input type="range" min="300" max="2000" value="440" id="note2"></input>
+        </div>
+        <div>
+            nota 3
+            <input type="range" min="300" max="2000" value="440" id="note3"></input>
+        </div>
+        <div>
+            Tempo
+            <input type="range" min="10" max="1500" value="500" id="tempo"></input>
+        </div>
+        <script>
+            const noteFrequencies = {
+                'C4': 261.63,
+                'C#4': 277.18,
+                'D4': 293.66,
+                'D#4': 311.13,
+                'E4': 329.63,
+                'F4': 349.23,
+                'F#4': 369.99,
+                'G4': 392.00,
+                'G#4': 415.30,
+                'A4': 440.00,
+                'A#4': 466.16,
+                'B4': 493.88,
+                'C5': 523.25,
+                'C#5': 554.37,
+                'D5': 587.33,
+                'D#5': 622.25,
+                'E5': 659.26,
+                'F5': 698.46,
+                'F#5': 739.99,
+                'G5': 783.99,
+                'G#5': 830.61,
+                'A5': 880.00,
+                'A#5': 932.33,
+                'B5': 987.77,
+                'C6': 1046.50,
+                'C#6': 1108.73,
+                'D6': 1174.66,
+                'D#6': 1244.51,
+                'E6': 1318.51,
+                'F6': 1396.91,
+                'F#6': 1479.98,
+                'G6': 1567.98,
+                'G#6': 1661.22,
+                'A6': 1760.00,
+                'A#6': 1864.66,
+                'B6': 1975.53,
+                'C7': 2093.00,
+                'C#7': 2217.46,
+                'D7': 2349.32,
+                'D#7': 2489.02,
+                'E7': 2637.02,
+                'F7': 2793.83,
+                'F#7': 2959.96,
+                'G7': 3135.96,
+                'G#7': 3322.44,
+                'A7': 3520.00,
+                'A#7': 3729.31,
+                'B7': 3951.07,
+                'C8': 4186.01,
+                'C#8': 4434.92,
+                'D8': 4698.63,
+                'D#8': 4978.03,
+                'E8': 5274.04,
+                'F8': 5587.65,
+                'F#8': 5919.91,
+                'G8': 6271.93,
+                'G#8': 6644.88,
+                'A8': 7040.00,
+                'A#8': 7458.62,
+                'B8': 7902.13,
+                'C9': 8372.02
+                };
+
+            var note1 = document.getElementById("note1");
+            var note2 = document.getElementById("note2");
+            var note3 = document.getElementById("note3");
+            var tempo = document.getElementById("tempo");
+            const c = new AudioContext();
+            var options = [0.1, 0.2, tempo];
+            var notes = [Number(note1.value), Number(note2.value), Number(note3.value)];
+
+            function playNote(note, attack, release){
+                const oscillator = c.createOscillator();
+                const gain = c.createGain();
+                // instantiate compressor
+                const compressor = c.createDynamicsCompressor();
+
+                oscillator.type = "triangle";
+                oscillator.frequency.value = note;
+                
+                gain.gain.setValueAtTime(0, c.currentTime);
+                gain.gain.linearRampToValueAtTime(1, c.currentTime + attack);
+                gain.gain.linearRampToValueAtTime(0, c.currentTime + attack + release);
+
+                oscillator.connect(gain);
+                gain.connect(compressor);
+                compressor.connect(c.destination);
+
+                oscillator.start(c.currentTime);
+                oscillator.stop(c.currentTime + attack + release);
+            }
+            function playSequence(i){
+                //play an array of notes
+                notes = [Number(note1.value), Number(note2.value), Number(note3.value)];
+                playNote(noteFrequencies[quantizeToNearestNote(notes[i])], options[0], options[1]);
+                setTimeout(() => playSequence((i + 1) % notes.length), Number(options[2].value));
+            }
+            
+            function quantizeToNearestNote(frequency) {
+            let closestNote = null;
+            let closestDistance = Number.MAX_VALUE;
+
+            for (const note in noteFrequencies) {
+                const noteFrequency = noteFrequencies[note];
+                const distance = Math.abs(frequency - noteFrequency);
+
+                if (distance < closestDistance) {
+                closestDistance = distance;
+                closestNote = note;
+                }
+            }
+            console.log(closestNote);
+            return closestNote;
+            }
+            //play a sequence with notes in frequencies
+            playSequence(0);
+
+            //do a dictionary of each frequency associeted to a note
+            
+        </script>
+    </body>
+</html>
