@@ -1,0 +1,88 @@
+.key {
+    background-color: orange;
+    width: 55px;
+    height: 90px;
+    border-radius: 10px;
+    display: inline-flex;
+    margin-right: 5px;
+    margin-bottom: 7px;
+    border: 2px solid darkorange;
+}
+.led {
+    background-color: darkred;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid darkred;
+    position: relative;
+    left: 50%;
+    top: 5px;
+    transform: translateX(-50%);
+}
+#bar {
+    background-color: grey;
+    padding: 10px;
+    padding-left: 14px;
+    display: inline-flex;
+}
+.red {
+    background-color: red;
+    border: 2px solid darkred;
+}
+.white {
+    background-color: blue;
+    border: 2px solid black;
+}
+.orange {
+    background-color: orange;
+    border: 2px solid darkorange;
+}
+.yellow {
+    background-color: yellow;
+    border: 2px solid orange;
+}
+.active-led {
+    background-color: red;
+}
+
+#stop_button {
+    background-color: red;
+}
+
+.button {
+    width: 100px;
+    height: 20px;
+    margin-top: 10px;
+    color: white;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border-radius: 5px;
+}
+div {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+#resume_button {
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-left: 12px solid #000;
+    border-bottom: 8px solid transparent;
+    margin: 5px;
+    cursor: pointer;
+}
+
+#freeze_button {
+    width: 4px;
+    height: 16px;
+    border-right: 4px solid #000;
+    border-left: 4px solid #000;
+    margin: 5px;
+    cursor: pointer;
+}
+.active-key {
+    background-color: green;
+    border-color: darkgreen;
+}
