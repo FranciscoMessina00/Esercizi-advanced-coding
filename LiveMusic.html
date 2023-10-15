@@ -12,17 +12,14 @@ We will program a set of functions that:
         <h1>My three note sequencer!!</h1>
         <button onclick="c.suspend()">Suspend context</button>
         <button onclick="c.resume()">Resume context</button>
+        <!-- An input that gets a value from the user -->
         <div>
-            nota 1
-            <input type="range" min="300" max="2000" value="440" id="note1"></input>
+            Insert the number of notes you want:
+            <input type="text" id="noteInput" placeholder="Number of notes" value="4">
+            <button onclick="reset()">Reset notes</button>
         </div>
-        <div>
-            nota 2
-            <input type="range" min="300" max="2000" value="440" id="note2"></input>
-        </div>
-        <div>
-            nota 3
-            <input type="range" min="300" max="2000" value="440" id="note3"></input>
+        <div id="notes">
+            
         </div>
         <div>
             Tempo
@@ -93,14 +90,17 @@ We will program a set of functions that:
                 'C9': 8372.02
                 };
 
-            var note1 = document.getElementById("note1");
-            var note2 = document.getElementById("note2");
-            var note3 = document.getElementById("note3");
+            
             var tempo = document.getElementById("tempo");
+            var noteInput = document.getElementById("noteInput");
             const c = new AudioContext();
             var options = [0.1, 0.2, tempo];
-            var notes = [Number(note1.value), Number(note2.value), Number(note3.value)];
-
+            addDivs(Number(noteInput.value), 4);
+            var notes = getElements();
+            var length = Number(noteInput.value);
+            var timeouts = [];
+            var currentNote = 0;
+            
             function playNote(note, attack, release){
                 const oscillator = c.createOscillator();
                 const gain = c.createGain();
@@ -121,34 +121,98 @@ We will program a set of functions that:
                 oscillator.start(c.currentTime);
                 oscillator.stop(c.currentTime + attack + release);
             }
-            function playSequence(i){
+            function playSequence(){
                 //play an array of notes
-                notes = [Number(note1.value), Number(note2.value), Number(note3.value)];
-                playNote(noteFrequencies[quantizeToNearestNote(notes[i])], options[0], options[1]);
-                setTimeout(() => playSequence((i + 1) % notes.length), Number(options[2].value));
+                notes = getElements();
+                playNote(noteFrequencies[quantizeToNearestNote(notes[currentNote])], options[0], options[1]);
+                currentNote++;
+                currentNote = currentNote % notes.length;
+                // we add the timeouts on an array in order to delete them all after we reset all notes
+                timeouts.push(setTimeout(() => playSequence(), Number(options[2].value)));
             }
             
             function quantizeToNearestNote(frequency) {
-            let closestNote = null;
-            let closestDistance = Number.MAX_VALUE;
+                let closestNote = null;
+                let closestDistance = Number.MAX_VALUE;
 
-            for (const note in noteFrequencies) {
-                const noteFrequency = noteFrequencies[note];
-                const distance = Math.abs(frequency - noteFrequency);
+                for (const note in noteFrequencies) {
+                    const noteFrequency = noteFrequencies[note];
+                    const distance = Math.abs(frequency - noteFrequency);
 
-                if (distance < closestDistance) {
-                closestDistance = distance;
-                closestNote = note;
+                    if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestNote = note;
+                    }
                 }
-            }
-            console.log(closestNote);
-            return closestNote;
+                console.log(closestNote);
+                return closestNote;
             }
             //play a sequence with notes in frequencies
-            playSequence(0);
+            playSequence();
 
-            //do a dictionary of each frequency associeted to a note
-            
+            // A function that adds an n number of divs contaning a slider with a for loop
+            function addDivs(n, p) {
+                if(n < p){
+                    for (i = n; i < p; i++){
+                        document.getElementById("notes").removeChild(document.getElementById("notes").lastChild);
+                        notes.pop();
+                    }
+                    currentNote = currentNote % notes.length;
+                }
+                if (n > p){
+                    createDiv(n, p);
+                }
+                if (n == p){
+                    createDiv(n, 0);
+                }
+                // first remove all divs
+                /* while (document.getElementById("notes").firstChild) {
+                    document.getElementById("notes").removeChild(document.getElementById("notes").firstChild);
+                } */
+                
+                
+            }
+            function getElements(){
+                var notesIn = [];
+                for(i=0; i<length; i++){
+                    notesIn.push(Number(document.getElementById('note' + (i + 1)).value));
+                }
+                return notesIn;
+            }
+            function createDiv(n, p){
+                for (let i = p; i < n; i++) {
+                    /* the div should look like this:
+                    <div>
+                        Note 1
+                        <input type="range" min="300" max="2000" value="440" id="note1"></input>
+                    </div>*/
+                    const div = document.createElement("div");
+                    const input = document.createElement("input");
+                    const text = document.createElement("text");
+                    text.textContent = "Note " + (i + 1);
+                    input.type = "range";
+                    input.min = "300";
+                    input.max = "2000";
+                    input.value = "440";
+                    input.id = 'note' + (i + 1);
+                    div.appendChild(text);
+                    div.appendChild(input);
+                    document.getElementById("notes").appendChild(div);
+                }
+            }
+            function reset(){
+                for (var i=0; i<timeouts.length; i++) {
+                    clearTimeout(timeouts[i]);
+                }
+                if(Number(noteInput.value) > 0){
+                    length = Number(noteInput.value);
+                } else{
+                    length = 1;
+                }
+                clearTimeout();
+                addDivs(length, notes.length);
+                playSequence();
+            }
         </script>
     </body>
 </html>
