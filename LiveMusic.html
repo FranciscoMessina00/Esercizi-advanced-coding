@@ -95,12 +95,12 @@ We will program a set of functions that:
             var noteInput = document.getElementById("noteInput");
             const c = new AudioContext();
             var options = [0.1, 0.2, tempo];
-            addDivs(Number(noteInput.value), 4);
+            addDivs(Number(noteInput.value), 0);
             var notes = getElements();
             var length = Number(noteInput.value);
             var timeouts = [];
             var currentNote = 0;
-            
+            var flag = false;
             function playNote(note, attack, release){
                 const oscillator = c.createOscillator();
                 const gain = c.createGain();
@@ -122,6 +122,16 @@ We will program a set of functions that:
                 oscillator.stop(c.currentTime + attack + release);
             }
             function playSequence(){
+                // we check if we clicked the button in order to add or remove notes but still being synchronized with the tempo
+                if (flag){
+                    console.log("pre clear");
+                    for (var i=0; i<timeouts.length; i++) {
+                        clearTimeout(timeouts[i]);
+                    }
+                    console.log("post clear");
+                    addDivs(length, notes.length);
+                    flag = false;
+                }
                 //play an array of notes
                 notes = getElements();
                 playNote(noteFrequencies[quantizeToNearestNote(notes[currentNote])], options[0], options[1]);
@@ -130,12 +140,14 @@ We will program a set of functions that:
                 // we add the timeouts on an array in order to delete them all after we reset all notes
                 timeouts.push(setTimeout(() => playSequence(), Number(options[2].value)));
             }
-            
+            // this function gets as an input the frequency of the slider input and returns the closest note to that frequency
+            // at the beginning of the script we defined a dictionary containing the note associated to a specific frequency
             function quantizeToNearestNote(frequency) {
-                let closestNote = null;
-                let closestDistance = Number.MAX_VALUE;
+                var closestNote = null;
+                var closestDistance = Number.MAX_VALUE;
 
                 for (const note in noteFrequencies) {
+                    // for each key of the dictionary we get its value and calculate the difference with our input frequency
                     const noteFrequency = noteFrequencies[note];
                     const distance = Math.abs(frequency - noteFrequency);
 
@@ -145,12 +157,15 @@ We will program a set of functions that:
                     }
                 }
                 console.log(closestNote);
+                // it returns the key of the dictionary, not the value
                 return closestNote;
             }
             //play a sequence with notes in frequencies
             playSequence();
 
-            // A function that adds an n number of divs contaning a slider with a for loop
+            // A function that adds n-p divs, or removes p-n divs contaning a slider with a for loop
+            // n represents the nuber of notes we want and p represents the previous number of notes
+            // so that we can know how many divs we need to add or remove
             function addDivs(n, p) {
                 if(n < p){
                     for (i = n; i < p; i++){
@@ -162,16 +177,9 @@ We will program a set of functions that:
                 if (n > p){
                     createDiv(n, p);
                 }
-                if (n == p){
-                    createDiv(n, 0);
-                }
-                // first remove all divs
-                /* while (document.getElementById("notes").firstChild) {
-                    document.getElementById("notes").removeChild(document.getElementById("notes").firstChild);
-                } */
-                
-                
+                // if n == p we don't have to do anything
             }
+            // the function reads every note and puts it into an array
             function getElements(){
                 var notesIn = [];
                 for(i=0; i<length; i++){
@@ -189,6 +197,11 @@ We will program a set of functions that:
                     const div = document.createElement("div");
                     const input = document.createElement("input");
                     const text = document.createElement("text");
+                    // we create a span element in order to place near the slider the current note playing
+                    const valueDisplay = document.createElement("span");
+                    valueDisplay.textContent = quantizeToNearestNote(Number(input.value));
+                    input.addEventListener("input", function(){
+                        valueDisplay.textContent = quantizeToNearestNote(Number(input.value));});
                     text.textContent = "Note " + (i + 1);
                     input.type = "range";
                     input.min = "300";
@@ -197,21 +210,19 @@ We will program a set of functions that:
                     input.id = 'note' + (i + 1);
                     div.appendChild(text);
                     div.appendChild(input);
+                    div.appendChild(valueDisplay);
                     document.getElementById("notes").appendChild(div);
                 }
             }
             function reset(){
-                for (var i=0; i<timeouts.length; i++) {
-                    clearTimeout(timeouts[i]);
-                }
+                // when the button "reset notes" is clicked, we set the flag to true, so that the function playSequence() can detect the click
+                flag = true;
+                // we check if the user put a number of notes less than one
                 if(Number(noteInput.value) > 0){
                     length = Number(noteInput.value);
                 } else{
                     length = 1;
                 }
-                clearTimeout();
-                addDivs(length, notes.length);
-                playSequence();
             }
         </script>
     </body>
