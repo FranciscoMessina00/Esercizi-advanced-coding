@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+    <head></head>
+    <body>
+        <h1>Kick Drum</h1>
+        <button onclick="context.suspend()">Suspend context</button>
+        <button onclick="context.resume()">Resume context</button>
+        <script>
+            const context = new AudioContext();
+            var buffer = context.createBuffer(1, context.sampleRate * 8, context.sampleRate);
+            // we extract the channel data 
+            var bufferData = buffer.getChannelData(0);
+            /* var freqDecay = 50;
+            var ampDecay = 10; */
+            // create sine of 440 Hz sampled at 44.1 kHz
+            function playKick(freqDecay, ampDecay){
+                for (var i = 0; i < bufferData.length; i++) {
+                    var fd = Math.exp(-i * freqDecay/context.sampleRate);
+                    var ad = Math.exp(-i * ampDecay/context.sampleRate)
+                    bufferData[i] = ad * Math.sin(2 * Math.PI * fd * 440 * i / context.sampleRate);
+
+                }
+                var source = context.createBufferSource();
+                source.buffer = buffer;
+                source.connect(context.destination);
+                source.start();
+            }
+        </script>
+    </body>
+
+</html>

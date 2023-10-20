@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+    <head></head>
+    <body>
+        <h1>Percussions</h1>
+        <button onclick="context.suspend()">Suspend context</button>
+        <button onclick="context.resume()">Resume context</button>
+        <script>
+            const context = new AudioContext();
+            var buffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
+            // we extract the channel data 
+            var bufferData = buffer.getChannelData(0);
+            // create noise
+            for (var i = 0; i < bufferData.length; i++) {
+                bufferData[i] = Math.random() * 2 - 1;
+            }
+            // create sine of 440 Hz sampled at 44.1 kHz
+            var frequency = 433;
+            for (var i = 0; i < bufferData.length; i++) {
+                bufferData[i] = Math.sin(2 * Math.PI * frequency * i / context.sampleRate);
+
+            }
+            var source = context.createBufferSource();
+            source.buffer = buffer;
+            source.connect(context.destination);
+            source.start();
+        </script>
+    </body>
+
+</html>
