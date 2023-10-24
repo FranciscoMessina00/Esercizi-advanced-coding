@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+    <head>
+
+    </head>
+    <body>
+        <h1>Live coding space, open the console to do some live music!</h1>
+        <button onclick="context.suspend()">Suspend context</button>
+        <button onclick="context.resume()">Resume context</button>
+        <script>
+            const context = new AudioContext();
+            const sampleRate = context.sampleRate;
+            var kick = {
+                freqDecay: 30,
+                ampDecay: 30
+            }
+            var snare = {
+                freqDecay: 50,
+                ampDecay: 50,
+                noiseDecay: 50
+            }
+            var hihat = {
+                ampDecay: 100
+            }
+            var openhat = {
+                ampDecay: 20
+            }
+            var tempo = 250;
+
+            function playKick(){
+                var buffer = context.createBuffer(1, sampleRate * 1, sampleRate);
+                var bufferData = buffer.getChannelData(0);
+                
+                for (var i = 0; i < bufferData.length; i++) {
+                    var fd = Math.exp(-i * kick.freqDecay/sampleRate);
+                    var ad = Math.exp(-i * kick.ampDecay/sampleRate)
+                    bufferData[i] = ad * Math.sin(2 * Math.PI * fd * 440 * i / sampleRate);
+                }
+                var source = context.createBufferSource();
+                source.buffer = buffer;
+                source.connect(context.destination);
+                source.start();
+            }
+            function kickSequence(pattern, index){
+                if (pattern[index]){
+                    playKick();
+                }
+                index++;
+                index = index % pattern.length;
+                setTimeout(() => kickSequence(pattern, index), tempo)
+            }
+
+            function playSnare(){
+                var buffer = context.createBuffer(1, sampleRate * 0.5, sampleRate);
+                var bufferData = buffer.getChannelData(0);
+
+                for (var i = 0; i < bufferData.length; i++) {
+                    var fd = Math.exp(-i * snare.freqDecay/sampleRate);
+                    var ad = Math.exp(-i * snare.ampDecay/sampleRate);
+                    var adNoise = Math.exp(-i * snare.noiseDecay/sampleRate);
+                    bufferData[i] = ad * Math.sin(2 * Math.PI * fd * 440 * i / sampleRate) + adNoise * (Math.random() * 2 - 1);
+                }
+                var source = context.createBufferSource();
+                source.buffer = buffer;
+                source.connect(context.destination);
+                source.start();
+            }
+            function snareSequence(pattern, index){
+                if (pattern[index]){
+                    playSnare();
+                }
+                index++;
+                index = index % pattern.length;
+                setTimeout(() => snareSequence(pattern, index), tempo)
+            }
+
+            // open variable defines if we want open hihat or cloed, default value is closed hihat
+            function playHat(open = false){
+                var buffer = context.createBuffer(1, sampleRate * 1, sampleRate);
+                var bufferData = buffer.getChannelData(0);
+
+                for (var i = 0; i < bufferData.length; i++) {
+                    if(!open){
+                        var ad = 0.2*Math.exp(-i * hihat.ampDecay/sampleRate);
+                    }
+                    else{
+                        var ad = 0.3*Math.exp(-i * openhat.ampDecay/sampleRate);
+                    }
+                    bufferData[i] = ad * (Math.random() * 2 - 1);
+                }
+                var source = context.createBufferSource();
+                source.buffer = buffer;
+                source.connect(context.destination);
+                source.start();
+            }
+            function hihatSequence(pattern, index){
+                if (pattern[index]){
+                    playHat(0);
+                }
+                index++;
+                index = index % pattern.length;
+                setTimeout(() => hihatSequence(pattern, index), tempo)
+            }
+            function openhatSequence(pattern, index){
+                if (pattern[index]){
+                    playHat(1);
+                }
+                index++;
+                index = index % pattern.length;
+                setTimeout(() => openhatSequence(pattern, index), tempo)
+            }
+
+            /* openhatSequence([0, 0, 0, 1],0);
+            snareSequence([0, 1, 0, 1], 0);
+            kickSequence([1, 0, 1, 0], 0);
+            hihatSequence([1, 1, 1, 0],0) */
+
+            document.addEventListener("keydown", function(event) {
+                if (event.key === "a") {
+                playKick();
+                }
+                if (event.key === "d") {
+                playSnare();
+                }
+                if (event.key === "g") {
+                playHat(0);
+                }
+                if (event.key === "j") {
+                playHat(1);
+                }
+            });
+        </script>
+    </body>
+</html>
