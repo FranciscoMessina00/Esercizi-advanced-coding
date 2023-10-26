@@ -7,6 +7,69 @@
         <button onclick="context.suspend()">Suspend context</button>
         <button onclick="context.resume()">Resume context</button>
         <script>
+            const noteFrequencies = {
+                'C4': 261.63,
+                'C#4': 277.18,
+                'D4': 293.66,
+                'D#4': 311.13,
+                'E4': 329.63,
+                'F4': 349.23,
+                'F#4': 369.99,
+                'G4': 392.00,
+                'G#4': 415.30,
+                'A4': 440.00,
+                'A#4': 466.16,
+                'B4': 493.88,
+                'C5': 523.25,
+                'C#5': 554.37,
+                'D5': 587.33,
+                'D#5': 622.25,
+                'E5': 659.26,
+                'F5': 698.46,
+                'F#5': 739.99,
+                'G5': 783.99,
+                'G#5': 830.61,
+                'A5': 880.00,
+                'A#5': 932.33,
+                'B5': 987.77,
+                'C6': 1046.50,
+                'C#6': 1108.73,
+                'D6': 1174.66,
+                'D#6': 1244.51,
+                'E6': 1318.51,
+                'F6': 1396.91,
+                'F#6': 1479.98,
+                'G6': 1567.98,
+                'G#6': 1661.22,
+                'A6': 1760.00,
+                'A#6': 1864.66,
+                'B6': 1975.53,
+                'C7': 2093.00,
+                'C#7': 2217.46,
+                'D7': 2349.32,
+                'D#7': 2489.02,
+                'E7': 2637.02,
+                'F7': 2793.83,
+                'F#7': 2959.96,
+                'G7': 3135.96,
+                'G#7': 3322.44,
+                'A7': 3520.00,
+                'A#7': 3729.31,
+                'B7': 3951.07,
+                'C8': 4186.01,
+                'C#8': 4434.92,
+                'D8': 4698.63,
+                'D#8': 4978.03,
+                'E8': 5274.04,
+                'F8': 5587.65,
+                'F#8': 5919.91,
+                'G8': 6271.93,
+                'G#8': 6644.88,
+                'A8': 7040.00,
+                'A#8': 7458.62,
+                'B8': 7902.13,
+                'C9': 8372.02
+                };
             const context = new AudioContext();
             const sampleRate = context.sampleRate;
             var kick = {
@@ -128,6 +191,77 @@
                 playHat(1);
                 }
             });
+
+            // Adding the possibility to play a sequence
+
+            function playNote(note, attack, release){
+                const oscillator = context.createOscillator();
+                const gain = context.createGain();
+                // instantiate compressor
+                const compressor = context.createDynamicsCompressor();
+
+                oscillator.type = "triangle";
+                oscillator.frequency.value = getNote(note);
+                
+                gain.gain.setValueAtTime(0, context.currentTime);
+                gain.gain.linearRampToValueAtTime(0.5, context.currentTime + attack);
+                gain.gain.linearRampToValueAtTime(0, context.currentTime + attack + release);
+
+                oscillator.connect(gain);
+                gain.connect(compressor);
+                compressor.connect(context.destination);
+
+                oscillator.start(context.currentTime);
+                oscillator.stop(context.currentTime + attack + release);
+            }
+
+            function getNote(note){
+                noteFreq = noteFrequencies[note];
+                if (!noteFreq){
+                    noteFreq = 0;
+                }
+                return noteFreq;
+            }
+            function createMelody(notes) {
+                let melody = notes; // Initialize the melody array
+                let flag = true; // Set your flag variable
+                const playerId = Math.random().toString(36).substr(2, 9); // Generate a unique player ID
+
+                function playSequence(startingPoint, attack, release) {
+                    playNote(melody[startingPoint], attack / 1000, release / 1000);
+                    startingPoint++;
+                    startingPoint = startingPoint % melody.length;
+
+                    if (flag) {
+                    setTimeout(() => playSequence(startingPoint, attack, release), tempo);
+                    } else {
+                    flag = true;
+                    }
+                }
+
+                return {
+                    setMelody: (newMelody) => {
+                    // Update the melody array when called
+                    melody = newMelody;
+                    },
+                    start: () => {
+                    flag = true;
+                    playSequence(0, 50, 100);
+                    },
+                    stop: () => {
+                    flag = false;
+                    },
+                };
+                }
+
+            // Create two instances of the player
+            const player1 = createMelody(["C4", "E4", "G4"]);
+            const player2 = createMelody(["A4", "C5", "E5"]);
+
+            player1.start();
+            player2.start();
+
+
         </script>
     </body>
 </html>
