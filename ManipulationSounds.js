@@ -1,7 +1,6 @@
 const c = new AudioContext();
 const o = c.createOscillator();
 const a = c.createAnalyser();
-c.resume();
 o.connect(a);
 a.connect(c.destination);
 

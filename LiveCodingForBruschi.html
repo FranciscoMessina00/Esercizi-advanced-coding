@@ -6,6 +6,7 @@
         <h1>Live coding space, open the console to do some live music!</h1>
         <button onclick="context.suspend()">Suspend context</button>
         <button onclick="context.resume()">Resume context</button>
+        <canvas id="soundVisual"></canvas>
         <script>
             const noteFrequencies = {
                 'C4': 261.63,
@@ -71,6 +72,13 @@
                 'C9': 8372.02
                 };
             const context = new AudioContext();
+            const a = context.createAnalyser();
+            a.connect(context.destination);
+            var dataArray = new Uint8Array(a.frequencyBinCount);
+
+            const canvas = document.getElementById("soundVisual");
+            const ctx = canvas.getContext('2d');
+
             const sampleRate = context.sampleRate;
             var kick = {
                 freqDecay: 30,
@@ -100,7 +108,7 @@
                 }
                 var source = context.createBufferSource();
                 source.buffer = buffer;
-                source.connect(context.destination);
+                source.connect(a);
                 source.start();
             }
             function kickSequence(pattern, index){
@@ -124,7 +132,7 @@
                 }
                 var source = context.createBufferSource();
                 source.buffer = buffer;
-                source.connect(context.destination);
+                source.connect(a);
                 source.start();
             }
             function snareSequence(pattern, index){
@@ -152,7 +160,7 @@
                 }
                 var source = context.createBufferSource();
                 source.buffer = buffer;
-                source.connect(context.destination);
+                source.connect(a);
                 source.start();
             }
             function hihatSequence(pattern, index){
@@ -209,7 +217,7 @@
 
                 oscillator.connect(gain);
                 gain.connect(compressor);
-                compressor.connect(context.destination);
+                compressor.connect(a);
 
                 oscillator.start(context.currentTime);
                 oscillator.stop(context.currentTime + attack + release);
@@ -255,13 +263,30 @@
                 }
 
             // Create two instances of the player
-            const player1 = createMelody(["C4", "E4", "G4"]);
-            const player2 = createMelody(["A4", "C5", "E5"]);
+            /* const player1 = createMelody(["C4", "E4", "G4"]);
+            const player2 = createMelody(["A4", "C5", "E5"]); */
 
             /* player1.start();
             player2.start(); */
+            function drawSamples(){
+                var samples = new Uint8Array(a.frequencyBinCount);
+                a.getByteTimeDomainData(samples);
 
+                var start = 0;
+                for(;start<samples.length;start+=1){
+                    if(samples[start] < 15 && samples[start-2] > 5) break;
+                }
 
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.moveTo(0, 0);
+                ctx.beginPath();
+                for(var i = start; i < samples.length; i++){
+                    ctx.lineTo(i - start, canvas.height*samples[i]/255)
+                }
+                ctx.stroke();
+                requestAnimationFrame(drawSamples);
+            }
+            drawSamples();
         </script>
     </body>
 </html>
