@@ -1,0 +1,66 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+        <script>
+
+            var c = new AudioContext();
+            // we need a buffer to store some audio data, 10 seconds worth
+            var buffer = c.createBuffer(1, c.sampleRate*10, c.sampleRate);
+
+            // we need a buffer source node to play the buffer
+            var o = c.createOscillator();
+
+            // we need a script processor node to fill the buffer
+            var sp = c.createScriptProcessor(1024, 1, 1);
+
+            var recordHeader = 0;
+            sp.onaudioprocess = function (e) {
+                // e.inputBuffer is the buffer that we can fill
+                // e.outputBuffer is the buffer that we can read from
+                
+                var output = e.outputBuffer.getChannelData(0);
+                
+                var dump = e.inputBuffer.getChannelData(0);
+                for (var i = 0; i < e.inputBuffer.length; i++) {
+                // we want to fill the input buffer onto the output buffer
+                // so that we can hear what we are recording
+                    output[i] = dump[i];
+                }
+
+                // record the input buffer into the recording buffer
+                for (var i = 0; i < e.inputBuffer.length; i++) {
+                    buffer.getChannelData(0)[i + recordHeader] = e.inputBuffer.getChannelData(0)[i];
+                }
+                recordHeader += e.inputBuffer.length;
+            }
+
+            // write a buffer the plays a buffer from second a to second b
+            // the function also accepts
+            // e.g. play(buffer, 1, 2)
+            // do that by creating a new buffer, sopying the data from the old buffer to the new buffer and playing
+            function play(buffer, a, b) {
+                var newBuffer = c.createBuffer(buffer.numberOfChannels, buffer.sampleRate*(b-a), buffer.sampleRate);
+                var newBufferChannel = newBuffer.getChannelData(0);
+                var oldBufferChannel = buffer.getChannelData(0);
+                for (var i = 0; i < newBufferChannel.length; i++) {
+                    newBufferChannel[i] = oldBufferChannel[i + buffer.sampleRate*a];
+                }
+                var newBufferSource = c.createBufferSource();
+                newBufferSource.buffer = newBufferChannel;
+                newBufferSource.connect(c.destination);
+                newBufferSource.start();
+            }
+
+
+
+
+            // connect the nodes
+            o.connect(sp);
+            sp.connect(c.destination);
+
+
+        </script>
+    </body>
+</html>

@@ -1,0 +1,109 @@
+<html>
+    <head></head>
+    <body>
+        <div id = "state">
+
+        </div>
+        <canvas id="waveform"></canvas>
+        <script>
+
+            const c = new AudioContext();
+
+            function play(note, attack, release){
+
+                const oscillator = c.createOscillator();
+                const gain = c.createGain();
+                // instantiate compressor
+                const compressor = c.createDynamicsCompressor();
+                const limiter = c.
+
+                oscillator.type = "triangle";
+                oscillator.frequency.value = 440 * Math.pow(2, (note-57)/12);;
+                
+                gain.gain.setValueAtTime(0, c.currentTime);
+                gain.gain.linearRampToValueAtTime(1, c.currentTime + attack);
+                gain.gain.linearRampToValueAtTime(0, c.currentTime + attack + release);
+
+                oscillator.connect(gain);
+                gain.connect(compressor);
+                compressor.connect(c.destination);
+
+                oscillator.start(c.currentTime);
+                oscillator.stop(c.currentTime + attack + release);
+            }
+
+            var state ={msg:"ciao", recordHeader: 0, recording: true, clipStart:1, clipEnd:2};
+            function drawState(state){
+                document.getElementById("state").innerText = JSON.stringify(state);
+            }
+
+            function continuoslyDrawState(){
+                drawState(state);
+                window.requestAnimationFrame(continuoslyDrawState);
+            }
+
+            continuoslyDrawState();
+
+            var sampleBuffer = c.createBuffer(1, 10*c.sampleRate, c.sampleRate);
+            var recorder = c.createScriptProcessor(1024, 1, 1);
+
+            recorder.onaudioprocess = function(e){
+                if(!state.recording){return;}
+                var input = e.inputBuffer.getChannelData(0);
+                var sampleData= sampleBuffer.getChannelData(0);
+                for (var i = 0; i < input.length; i++) {
+                    sampleData[state.recordHeader] = input[i];
+                    state.recordHeader = (state.recordHeader + 1) % sampleBuffer.length;
+                }
+            }
+            recorder.connect(c.destination);
+
+            function connectMic(){
+                navigator.getUserMedia({ audio: true }, 
+                    function (stream)
+                    {
+                        var mss = c.createMediaStreamSource(stream);
+                        mss.connect(recorder);
+                    }, console.log);
+            }
+
+            function playClip(buffer, begin, end){
+                var clipBuffer = c.createBuffer(1, (end-begin)*c.sampleRate, c.sampleRate);
+                var clipData = clipBuffer.getChannelData(0);
+                for (var i = 0; i < clipBuffer.length; i++) {
+                    clipData[i] = buffer.getChannelData(0)[begin * c.sampleRate + i];
+                }
+                var bs = c.createBufferSource();
+                bs.buffer = clipBuffer;
+                bs.connect(c.destination);
+                bs.start();
+
+            }
+            function drawWaveform(){
+                var ctx = document.getElementById("waveform").getContext("2d");
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                var w = ctx.canvas.width;
+                var h = ctx.canvas.height;
+                var sampleData = sampleBuffer.getChannelData(0);
+                ctx.beginPath();
+                ctx.moveTo(0, h/2);
+                for (var i = 0; i < w; i++) {
+                    ctx.lineTo(i, h/2+h*sampleData[i*sampleData.length/w]);
+                }
+                ctx.stroke();
+
+                // draw clip boundaries
+                ctx.beginPath();
+                var startPosition = state.clipStart*c.sampleRate/sampleBuffer.length*w;
+                ctx.moveTo(state.clipStart*c.sampleRate/sampleBuffer.length*w, h/2);
+                ctx.lineTo(state.clipStart*c.sampleRate/sampleBuffer.length*w, h);
+                ctx.stroke();
+            }
+
+            function continuouslyDrawWaveform(){
+                drawWaveform();
+                window.requestAnimationFrame(continuouslyDrawWaveform);
+            }
+        </script>
+    </body>
+</html>
