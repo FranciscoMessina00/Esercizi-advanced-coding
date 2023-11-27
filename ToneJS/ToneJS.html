@@ -32,6 +32,8 @@
             var position = 0;
             Tone.Transport.scheduleRepeat(function(time){
                 //do something with the time
+                createSequencer();
+                drawSelector();
                 playSound();
                 position++;
             }, "8n");
@@ -71,7 +73,7 @@
                         ctx.strokeRect(squareX, squareY, cell, cell);
                     }
                 }
-                requestAnimationFrame(createSequencer);
+                
             }
             function detectClick(){
                 const cell = 25;
@@ -86,6 +88,8 @@
                     if((i<4 && i>=0) && (j<8 && j>=0)){
                         matrix[i][j] = 1 - matrix[i][j];
                     }
+                    createSequencer();
+                    drawSelector();
                 });
             }
             function drawSelector(){
@@ -99,7 +103,7 @@
                 //playSound(position);
                 ctx.fillRect(position*cell, 0, cell, heightCell);
                 ctx.globalAlpha = 1;
-                requestAnimationFrame(drawSelector);
+                //requestAnimationFrame(drawSelector);
             }
             function checkFreq(){
                 bpm = document.getElementById("slider").value;
@@ -125,8 +129,8 @@
             }
             var matrix = defineMatrix();
             detectClick();
-            requestAnimationFrame(createSequencer);
-            requestAnimationFrame(drawSelector);
+            createSequencer();
+            drawSelector();
         </script>
     </body>
 

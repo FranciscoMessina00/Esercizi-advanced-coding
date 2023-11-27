@@ -28,9 +28,9 @@ ctx.stroke();
  */
 // create linear gradient
 /* const grd = ctx.createLinearGradient(0, 0, 200, 0);
-grd.addColorStop(0, '#FF0000');
-grd.addColorStop(1, '#FFFFFF');
-
+grd.addColorStop(0, '#D9D9D9');
+grd.addColorStop(1, '#B1B1B1');
+#B1B1B1, #D9D9D9
 ctx.fillStyle = grd;
 ctx.fillRect(10, 10, 200, 100);
  */
